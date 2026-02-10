@@ -20,7 +20,6 @@
         @keyframes pulse { 0% { box-shadow: 0 0 0 0px rgba(230, 57, 70, 0.7); } 100% { box-shadow: 0 0 0 25px rgba(230, 57, 70, 0); } }
         #status { margin-top: 20px; font-weight: bold; color: #777; letter-spacing: 1px; }
         .hint-overlay { background: #fffde7; padding: 15px; border-radius: 20px; border: 2px dashed var(--gold); margin-top: 25px; display: none; color: #856404; }
-        .hint-overlay.show { display: block; }
         .progress-container { width: 100%; background: #eee; height: 12px; border-radius: 10px; margin-bottom: 25px; overflow: hidden; }
         #progress-inner { height: 100%; background: linear-gradient(90deg, #4caf50, #2d5a27); width: 0%; transition: 0.5s; }
     </style>
@@ -52,11 +51,10 @@
 
         async function loadData() {
             const urlParams = new URLSearchParams(window.location.search);
-            // 默认日期改为 20260205
+            // 默认日期 20260205
             const dateParam = urlParams.get('date') || '20260205'; 
             const path = `./data/${dateParam}.json`; 
             
-            console.log("Loading path:", path);
             try {
                 const response = await fetch(path);
                 if (!response.ok) throw new Error();
@@ -85,6 +83,9 @@
         }
 
         function startStep() {
+            // 每次进入新题目时，强制隐藏上一题的 Hint 提醒框
+            document.getElementById('hint-box').style.display = 'none';
+
             if (step >= scenario.length) {
                 updateUI("Done!", "Pro!", "🏆");
                 speak("Fantastic job!");
