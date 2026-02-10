@@ -1,20 +1,341 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>English Practice Lessons</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GreEnglish - Audrey</title>
+    <style>
+        :root { 
+            --golf-green: #2d5a27; 
+            --grass-light: #ebf5e9;
+            --accent: #e63946; 
+            --gold: #fbc02d; 
+        }
+        
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: #f0f4f0; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            padding: 20px;
+            color: #333;
+        }
+
+        #game-card { 
+            background: white; 
+            width: 100%; 
+            max-width: 500px; 
+            padding: 30px; 
+            border-radius: 40px; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1); 
+            text-align: center; 
+            border: 4px solid var(--golf-green);
+        }
+
+        .header-emoji { font-size: 60px; margin-bottom: 10px; }
+
+        .npc-msg { 
+            background: var(--grass-light); 
+            padding: 25px; 
+            border-radius: 25px; 
+            font-size: 20px; 
+            color: #1b5e20; 
+            margin-bottom: 20px; 
+            min-height: 80px; 
+            line-height: 1.5;
+            position: relative;
+            font-weight: 500;
+        }
+
+        .npc-msg::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 15px 15px 0;
+            border-style: solid;
+            border-color: var(--grass-light) transparent;
+        }
+
+        #visual-hint {
+            display: none;
+            background: #fff;
+            border: 2px solid var(--gold);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px auto;
+            width: 80%;
+        }
+
+        #visual-img {
+            width: 100%;
+            max-height: 200px;
+            object-fit: contain;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .controls { margin-top: 30px; }
+
+        .mic-btn { 
+            width: 120px; 
+            height: 120px; 
+            border-radius: 50%; 
+            border: 8px solid white; 
+            cursor: pointer; 
+            background: var(--golf-green); 
+            color: white; 
+            font-size: 18px; 
+            font-weight: bold; 
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mic-btn:hover { transform: scale(1.05); }
+        .mic-btn.recording { background: var(--accent); animation: pulse 1.5s infinite; }
+
+        .retry-btn { 
+            display: none; 
+            padding: 15px 35px; 
+            background: var(--gold); 
+            border: none; 
+            color: #5d4037; 
+            border-radius: 50px; 
+            font-size: 18px;
+            font-weight: bold; 
+            cursor: pointer; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0px rgba(230, 57, 70, 0.7); } 100% { box-shadow: 0 0 0 25px rgba(230, 57, 70, 0); } }
+
+        #status { margin-top: 20px; font-weight: bold; color: #777; letter-spacing: 1px; }
+
+        .hint-overlay { 
+            background: #fffde7; 
+            padding: 15px; 
+            border-radius: 20px; 
+            border: 2px dashed var(--gold); 
+            margin-top: 25px; 
+            display: none; 
+            color: #856404;
+        }
+        .hint-overlay.show { display: block; animation: bounceIn 0.5s; }
+
+        @keyframes bounceIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .progress-container { width: 100%; background: #eee; height: 12px; border-radius: 10px; margin-bottom: 25px; overflow: hidden; }
+        #progress-inner { height: 100%; background: linear-gradient(90deg, #4caf50, #2d5a27); width: 0%; transition: 0.5s; }
+    </style>
 </head>
 <body>
-    <h1>English Practice Lessons</h1>
 
-    <ul>
-        <li><a href="lesson1.html">Lesson 1</a></li>
-        <li><a href="lesson2.html">Lesson 2</a></li>
-    </ul>
-    
-    <button onclick="loadLesson('lesson2')">Lesson 2.5</button>
+    <div id="game-card">
+        <div class="header-emoji" id="big-emoji">⛳</div>
+        <div class="progress-container"><div id="progress-inner"></div></div>
+        
+        <div id="visual-hint">
+            <div id="visual-text" style="color: #d32f2f; font-weight: bold; margin-bottom: 5px;"></div>
+            <img id="visual-img" src="" alt="Hint Image" style="display:none;">
+        </div>
 
-    
+        <div id="npc-text" class="npc-msg">Loading practice...</div>
+        
+        <div id="status">PLEASE WAIT</div>
+
+        <div class="controls">
+            <center>
+                <button id="mic-btn" class="mic-btn" onclick="handleMicClick()">
+                    <span id="mic-icon" style="font-size:30px">🎤</span>
+                    <span id="mic-text">START</span>
+                </button>
+                <button id="retry-btn" class="retry-btn" onclick="resetGame()">🔄 Play Again</button>
+            </center>
+        </div>
+
+        <div id="hint-box" class="hint-overlay">
+            <strong>💡 Teacher's Tip:</strong><br>
+            <span id="hint-text"></span>
+        </div>
+    </div>
+
+    <script>
+        let scenario = []; 
+        let step = -1;
+        let isRecording = false;
+        let idleTimer;
+        
+        const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        rec.lang = 'en-US';
+        rec.interimResults = false;
+
+        // --- 核心改动：从外部 JSON 加载练习 ---
+        async function loadData() {
+            const urlParams = new URLSearchParams(window.location.search);
+            // 默认日期 2026-02-05，如果链接里写了 ?date=xxx 就会读取对应的
+            const dateParam = urlParams.get('date') || '2026-02-05'; 
+            
+            try {
+                const response = await fetch(`data/${dateParam}.json`);
+                if (!response.ok) throw new Error('File not found');
+                scenario = await response.json();
+                
+                document.getElementById('npc-text').innerText = "Ready to practice?";
+                document.getElementById('status').innerText = "PRESS START";
+                console.log("Data loaded successfully for:", dateParam);
+            } catch (err) {
+                document.getElementById('npc-text').innerText = "Oops! Lesson not found.";
+                document.getElementById('status').innerText = "ERROR";
+                console.log("Error loading JSON:", err);
+            }
+        }
+
+        // 页面打开时立即加载
+        loadData();
+
+        function speak(text, callback) {
+            window.speechSynthesis.cancel();
+            const m = new SpeechSynthesisUtterance(text);
+            m.lang = 'en-US';
+            m.rate = 0.9; 
+            if (callback) m.onend = callback;
+            window.speechSynthesis.speak(m);
+        }
+
+        function handleMicClick() {
+            if (scenario.length === 0) return; // 数据没加载完点不动
+            if (step === -1) { step = 0; startStep(); return; }
+            if (!isRecording) startRecording(); else stopRecording();
+        }
+
+        function startStep() {
+            if (step >= scenario.length) {
+                updateUI("Lesson Complete!", "You're a Pro!", "🏆");
+                speak("Fantastic job! You've finished the lesson. See you next time!");
+                document.getElementById('mic-btn').style.display = 'none';
+                document.getElementById('retry-btn').style.display = 'inline-block';
+                document.getElementById('visual-hint').style.display = 'none';
+                return;
+            }
+
+            const current = scenario[step];
+            updateUI(current.q, "Listening...", current.emoji);
+            hideHint();
+            
+            // 更新视觉提示（文字+图片）
+            const vHint = document.getElementById('visual-hint');
+            const vText = document.getElementById('visual-text');
+            const vImg = document.getElementById('visual-img');
+
+            if (current.visual || current.image) {
+                vHint.style.display = 'block';
+                vText.innerText = current.visual || "";
+                if (current.image) {
+                    vImg.src = current.image;
+                    vImg.style.display = 'block';
+                } else {
+                    vImg.style.display = 'none';
+                }
+            } else {
+                vHint.style.display = 'none';
+            }
+
+            document.getElementById('progress-inner').style.width = ((step/scenario.length)*100) + "%";
+
+            speak(current.q, () => {
+                document.getElementById('status').innerText = "TAP TO SPEAK";
+                document.getElementById('mic-text').innerText = "TALK";
+                startIdleTimer();
+            });
+        }
+
+        function startIdleTimer() {
+            clearTimeout(idleTimer);
+            idleTimer = setTimeout(() => {
+                if(!isRecording && step < scenario.length) handleFailure();
+            }, 10000);
+        }
+
+        rec.onresult = (e) => {
+            const speech = e.results[0][0].transcript.toLowerCase();
+            const current = scenario[step];
+            stopRecording();
+            
+            if (current.keys.some(k => speech.includes(k))) {
+                document.getElementById('big-emoji').innerText = "✅";
+                speak("Great!", () => {
+                    step++;
+                    setTimeout(startStep, 800);
+                });
+            } else {
+                handleFailure();
+            }
+        };
+
+        function handleFailure() {
+            const current = scenario[step];
+            const feedback = `Try saying: "${current.full}". Repeat after me!`;
+            showHint(current.full);
+            document.getElementById('big-emoji').innerText = "📢";
+            updateUI(feedback, "Please Follow");
+            
+            speak(feedback, () => {
+                startRecording();
+            });
+        }
+
+        function startRecording() {
+            clearTimeout(idleTimer);
+            try {
+                rec.start();
+                isRecording = true;
+                document.getElementById('mic-btn').classList.add('recording');
+                document.getElementById('mic-icon').innerText = "🛑";
+                document.getElementById('mic-text').innerText = "STOP";
+            } catch(e) {}
+        }
+
+        function stopRecording() {
+            rec.stop();
+            isRecording = false;
+            document.getElementById('mic-btn').classList.remove('recording');
+            document.getElementById('mic-icon').innerText = "🎤";
+            document.getElementById('mic-text').innerText = "TALK";
+        }
+
+        function showHint(text) {
+            document.getElementById('hint-text').innerText = text;
+            document.getElementById('hint-box').classList.add('show');
+        }
+
+        function hideHint() {
+            document.getElementById('hint-box').classList.remove('show');
+        }
+
+        function updateUI(npcText, status, emoji) {
+            document.getElementById('npc-text').innerText = npcText;
+            document.getElementById('status').innerText = status;
+            if(emoji) document.getElementById('big-emoji').innerText = emoji;
+        }
+
+        function resetGame() {
+            step = 0;
+            document.getElementById('mic-btn').style.display = 'flex';
+            document.getElementById('retry-btn').style.display = 'none';
+            document.getElementById('big-emoji').innerText = "⛳";
+            startStep();
+        }
+
+        rec.onerror = () => { stopRecording(); };
+    </script>
 </body>
 </html>
-
