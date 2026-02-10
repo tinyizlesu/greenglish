@@ -9,7 +9,7 @@
         body { font-family: 'Segoe UI', sans-serif; background: #f0f4f0; display: flex; flex-direction: column; align-items: center; padding: 20px; color: #333; }
         #game-card { background: white; width: 100%; max-width: 500px; padding: 30px; border-radius: 40px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center; border: 4px solid var(--golf-green); }
         .header-emoji { font-size: 60px; margin-bottom: 10px; }
-        .npc-msg { background: var(--grass-light); padding: 25px; border-radius: 25px; font-size: 20px; color: #1b5e20; margin-bottom: 20px; min-height: 80px; line-height: 1.5; position: relative; font-weight: 500; }
+        .npc-msg { background: var(--grass-light); padding: 25px; border-radius: 25px; font-size: 22px; color: #1b5e20; margin-bottom: 20px; min-height: 80px; line-height: 1.5; position: relative; font-weight: 600; }
         .npc-msg::after { content: ''; position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); border-width: 15px 15px 0; border-style: solid; border-color: var(--grass-light) transparent; }
         #visual-hint { display: none; background: #fff; border: 2px solid var(--gold); border-radius: 10px; padding: 15px; margin: 10px auto; width: 80%; }
         #visual-img { width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px; margin-top: 10px; }
@@ -32,7 +32,9 @@
             <div id="visual-text" style="color: #d32f2f; font-weight: bold; margin-bottom: 5px;"></div>
             <img id="visual-img" src="" style="display:none;">
         </div>
+        
         <div id="npc-text" class="npc-msg">Hi there! Ready to practice?</div>
+        
         <div id="status">PLEASE WAIT</div>
         <div class="controls"><center>
             <button id="mic-btn" class="mic-btn" onclick="handleMicClick()">
@@ -41,6 +43,7 @@
             </button>
             <button id="retry-btn" class="retry-btn" onclick="resetGame()">🔄 Play Again</button>
         </center></div>
+        
         <div id="hint-box" class="hint-overlay"><strong>💡 Hint:</strong><br><span id="hint-text"></span></div>
     </div>
 
@@ -81,20 +84,21 @@
         }
 
         function startStep() {
-            // 每次进入新题目，必须彻底清空和隐藏下方提示框
-            const hb = document.getElementById('hint-box');
-            hb.style.display = 'none';
-            document.getElementById('hint-text').innerText = "";
-
+            // 清理旧提示
+            document.getElementById('hint-box').style.display = 'none';
+            
             if (step >= scenario.length) {
-                updateUI("Done!", "Pro!", "🏆");
+                updateUI("Lesson Complete!", "You're a Pro!", "🏆");
                 speak("Fantastic job!");
                 document.getElementById('mic-btn').style.display = 'none';
                 document.getElementById('retry-btn').style.display = 'inline-block';
                 return;
             }
+
             const current = scenario[step];
+            // 更新 UI：显示问题，设置状态为 Listening
             updateUI(current.q, "Listening...", current.emoji);
+            
             const vHint = document.getElementById('visual-hint');
             const vText = document.getElementById('visual-text');
             const vImg = document.getElementById('visual-img');
@@ -104,7 +108,9 @@
                 if (current.image) { vImg.src = current.image; vImg.style.display = 'block'; }
                 else { vImg.style.display = 'none'; }
             } else { vHint.style.display = 'none'; }
+            
             document.getElementById('progress-inner').style.width = ((step/scenario.length)*100) + "%";
+            
             speak(current.q, () => {
                 document.getElementById('status').innerText = "TAP TO SPEAK";
                 document.getElementById('mic-text').innerText = "TALK";
@@ -115,33 +121,44 @@
             const speech = e.results[0][0].transcript.toLowerCase();
             const current = scenario[step];
             stopRecording();
+            
+            // 检查关键词
             if (current.keys.some(k => speech.includes(k))) {
                 document.getElementById('big-emoji').innerText = "✅";
                 speak("Great!", () => { step++; setTimeout(startStep, 800); });
-            } else { handleFailure(); }
+            } else { 
+                handleFailure(); 
+            }
         };
 
         function handleFailure() {
             const current = scenario[step];
-            // 重点修改：直接把上方绿色区域的内容改为正确答案
             const feedbackText = `Try saying: "${current.full}"`;
-            document.getElementById('npc-text').innerText = feedbackText;
             
-            // 同时更新下方的提示框作为备份展示
-            document.getElementById('hint-text').innerText = current.full;
-            document.getElementById('hint-box').style.display = 'block';
+            // 核心修复：强制更新上方绿色区域显示正确答案
+            document.getElementById('npc-text').innerText = feedbackText;
+            document.getElementById('npc-text').style.color = "#d32f2f"; // 变色提醒
             
             document.getElementById('big-emoji').innerText = "📢";
-            updateUI(feedbackText, "Follow the Teacher");
+            document.getElementById('status').innerText = "Please Follow";
             
             speak("Try saying: " + current.full, () => {
+                // 朗读完后，重置颜色但保留正确答案文字，开始录音
+                document.getElementById('npc-text').style.color = "#1b5e20";
                 startRecording();
             });
         }
 
         function startRecording() { try { rec.start(); isRecording = true; document.getElementById('mic-btn').classList.add('recording'); } catch(e){} }
         function stopRecording() { rec.stop(); isRecording = false; document.getElementById('mic-btn').classList.remove('recording'); }
-        function updateUI(n, s, e) { document.getElementById('npc-text').innerText = n; document.getElementById('status').innerText = s; if(e) document.getElementById('big-emoji').innerText = e; }
+        
+        function updateUI(n, s, e) { 
+            document.getElementById('npc-text').innerText = n; 
+            document.getElementById('npc-text').style.color = "#1b5e20"; // 重置为正常绿色
+            document.getElementById('status').innerText = s; 
+            if(e) document.getElementById('big-emoji').innerText = e; 
+        }
+        
         function resetGame() { location.reload(); }
     </script>
 </body>
