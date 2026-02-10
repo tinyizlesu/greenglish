@@ -52,9 +52,11 @@
 
         async function loadData() {
             const urlParams = new URLSearchParams(window.location.search);
-            const dateParam = urlParams.get('date') || '2026-02-05'; 
+            // 默认日期改为 20260205
+            const dateParam = urlParams.get('date') || '20260205'; 
             const path = `./data/${dateParam}.json`; 
             
+            console.log("Loading path:", path);
             try {
                 const response = await fetch(path);
                 if (!response.ok) throw new Error();
