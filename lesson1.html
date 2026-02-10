@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Lesson 1 Practice</title>
+</head>
+<body>
+    <h1>Lesson 1 Practice</h1>
+    <div id="content">Loading...</div>
+
+    <script>
+        async function loadLesson() {
+            const response = await fetch("data/lesson1.json");
+            const questions = await response.json();
+
+            let html = "";
+            questions.forEach((q, i) => {
+                html += `
+                    <div style="margin-bottom:20px;">
+                        <strong>Q${i + 1}: ${q.question}</strong><br>
+                        <em>${q.note ?? ""}</em>
+                    </div>
+                `;
+            });
+
+            document.getElementById("content").innerHTML = html;
+        }
+        loadLesson();
+    </script>
+</body>
+</html>
