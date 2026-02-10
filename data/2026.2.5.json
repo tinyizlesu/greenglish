@@ -1,0 +1,9 @@
+[
+  { "q": "Can you tell me what is the month after February?", "keys": ["march"], "full": "It's March.", "emoji": "🌱" },
+  { "q": "What is the first month of the year?", "keys": ["january"], "full": "It's January.", "emoji": "🎆" },
+  { "q": "What is the last month of the year?", "keys": ["december"], "full": "It's December.", "emoji": "🔔" },
+  { "q": "What is the second month of the year?", "keys": ["february"], "full": "It's February.", "emoji": "❄️" },
+  { "q": "What is the month after May?", "keys": ["june"], "full": "The month after May is June.", "emoji": "📅" },
+  { "q": "When is Christmas?", "keys": ["december", "25", "25th"], "full": "December 25th.", "emoji": "🎄", "visual": "📅 12月25日", "image": "img/xmas.jpg" },
+  { "q": "When is Chinese New Year this year?", "keys": ["february", "17", "17th"], "full": "February 17th.", "emoji": "🧧", "visual": "🧧 2月17日", "image": "img/cny.jpg" }
+]
