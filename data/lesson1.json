@@ -1,1 +1,13 @@
+[
+    {
+        "question": "Chinese class and music class, which one do you prefer?",
+        "keys": ["music", "chinese", "prefer"],
+        "answer": "I prefer music class."
+    },
+    {
+        "question": "Cherries and strawberries, which fruit do you prefer?",
+        "keys": ["strawberries", "cherries"],
+        "answer": "I prefer strawberries."
+    }
+]
 
