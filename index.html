@@ -51,10 +51,8 @@
 
         async function loadData() {
             const urlParams = new URLSearchParams(window.location.search);
-            // 默认日期 20260205
             const dateParam = urlParams.get('date') || '20260205'; 
             const path = `./data/${dateParam}.json`; 
-            
             try {
                 const response = await fetch(path);
                 if (!response.ok) throw new Error();
@@ -83,8 +81,10 @@
         }
 
         function startStep() {
-            // 每次进入新题目时，强制隐藏上一题的 Hint 提醒框
-            document.getElementById('hint-box').style.display = 'none';
+            // 每次进入新题目，必须彻底清空和隐藏下方提示框
+            const hb = document.getElementById('hint-box');
+            hb.style.display = 'none';
+            document.getElementById('hint-text').innerText = "";
 
             if (step >= scenario.length) {
                 updateUI("Done!", "Pro!", "🏆");
@@ -123,9 +123,20 @@
 
         function handleFailure() {
             const current = scenario[step];
+            // 重点修改：直接把上方绿色区域的内容改为正确答案
+            const feedbackText = `Try saying: "${current.full}"`;
+            document.getElementById('npc-text').innerText = feedbackText;
+            
+            // 同时更新下方的提示框作为备份展示
             document.getElementById('hint-text').innerText = current.full;
             document.getElementById('hint-box').style.display = 'block';
-            speak("Try saying: " + current.full, () => startRecording());
+            
+            document.getElementById('big-emoji').innerText = "📢";
+            updateUI(feedbackText, "Follow the Teacher");
+            
+            speak("Try saying: " + current.full, () => {
+                startRecording();
+            });
         }
 
         function startRecording() { try { rec.start(); isRecording = true; document.getElementById('mic-btn').classList.add('recording'); } catch(e){} }
