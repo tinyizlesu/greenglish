@@ -13,7 +13,6 @@
   { "q": "Who will take you there?", "keys": ["my dad", "my father"], "full": "My dad will take me there.", "emoji": "🚗", "visual": "（爸爸）" },
   { "q": "Why do you go to the flame retardant factory?", "keys": ["for fun"], "full": "Just for fun.", "emoji": "😊", "visual": "（好玩，想去玩）" },
   { "q": "Can I join you?", "keys": ["yes", "no", "sorry i can't"], "full": "Yes, you can. / No, sorry.", "emoji": "🙋", "visual": "" },
-  { "q": "What day is today?", "keys": ["Feb 12", "Feb 12th"], "full": "It's Feb 12th.", "emoji": "📅", "visual": "（2月12日）" },
   { "q": "It’s your mum’s birthday today!", "keys": ["yes", "it is"], "full": "Yes, it is.", "emoji": "🎂", "visual": "" },
   { "q": "Did you say Happy Birthday to your mum?", "keys": ["yes", "i did"], "full": "Yes, I did.", "emoji": "💖", "visual": "" },
   { "q": "Are you going to do anything special?", "keys": ["take her out for dinner"], "full": "Yes, I will take her out for dinner.", "emoji": "🍴", "visual": "（带她出去吃饭）" },
