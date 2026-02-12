@@ -17,7 +17,7 @@
   { "q": "It’s your mum’s birthday today!", "keys": ["yes", "it is"], "full": "Yes, it is.", "emoji": "🎂", "visual": "" },
   { "q": "Did you say Happy Birthday to your mum?", "keys": ["yes", "i did"], "full": "Yes, I did.", "emoji": "💖", "visual": "" },
   { "q": "Are you going to do anything special?", "keys": ["take her out for dinner"], "full": "Yes, I will take her out for dinner.", "emoji": "🍴", "visual": "（带她出去吃饭）" },
-  { "q": "What time will you go out?", "keys": ["at 6", "6pm"], "full": "We will go out at 6pm.", "emoji": "🕙", "visual": "" },
+  { "q": "What time will you go out?", "keys": ["at 6", "6pm"], "full": "We will go out at 6pm.", "emoji": "🕙", "visual": "（下午6点）" },
   { "q": "What time is it?", "keys": ["2", "2pm"], "full": "It's 2pm.", "emoji": "⌚", "visual": "（下午2点）" },
-  { "q": "What time is over there?", "keys": ["11", "11am"], "full": "It's 11 am.", "emoji": "🌏", "visual": "" }
+  { "q": "What time is over there?", "keys": ["11", "11am"], "full": "It's 11 am.", "emoji": "🌏", "visual": "（上午11点）" }
 ]
