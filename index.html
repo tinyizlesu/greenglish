@@ -14,16 +14,30 @@
         #visual-hint { display: none; background: #fff; border: 2px solid var(--gold); border-radius: 10px; padding: 15px; margin: 10px auto; width: 80%; }
         #visual-img { width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px; margin-top: 10px; }
         .controls { margin-top: 30px; position: relative; }
-        
-        /* 倒计时样式 */
         #timer-display { font-size: 24px; font-weight: bold; color: var(--accent); margin-bottom: 10px; visibility: hidden; }
-
-        .mic-btn { width: 120px; height: 120px; border-radius: 50%; border: 8px solid white; cursor: pointer; background: var(--golf-green); color: white; font-size: 18px; font-weight: bold; transition: all 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.2); display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+        .mic-btn { width: 120px; height: 120px; border-radius: 50%; border: 8px solid white; cursor: pointer; background: var(--golf-green); color: white; font-size: 18px; font-weight: bold; transition: all 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.2); display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .mic-btn.recording { background: var(--accent); animation: pulse 1.5s infinite; }
+        
+        /* Skip 按钮样式 */
+        .skip-btn { 
+            display: none; 
+            margin-top: 15px; 
+            padding: 12px 25px; 
+            background: var(--gold); 
+            border: none; 
+            color: #5d4037; 
+            border-radius: 50px; 
+            font-size: 16px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-5px);} 60% {transform: translateY(-3px);} }
+
         .retry-btn { display: none; padding: 15px 35px; background: var(--gold); border: none; color: #5d4037; border-radius: 50px; font-size: 18px; font-weight: bold; cursor: pointer; }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0px rgba(230, 57, 70, 0.7); } 100% { box-shadow: 0 0 0 25px rgba(230, 57, 70, 0); } }
-        
-        #status { margin-top: 20px; font-weight: bold; color: #777; letter-spacing: 1px; text-transform: uppercase; }
+        #status { margin-top: 20px; font-weight: bold; color: #777; letter-spacing: 1px; }
         .hint-overlay { background: #fffde7; padding: 15px; border-radius: 20px; border: 2px dashed var(--gold); margin-top: 25px; display: none; color: #856404; }
         .progress-container { width: 100%; background: #eee; height: 12px; border-radius: 10px; margin-bottom: 25px; overflow: hidden; }
         #progress-inner { height: 100%; background: linear-gradient(90deg, #4caf50, #2d5a27); width: 0%; transition: 0.5s; }
@@ -37,37 +51,33 @@
             <div id="visual-text" style="color: #d32f2f; font-weight: bold; margin-bottom: 5px;"></div>
             <img id="visual-img" src="" style="display:none;">
         </div>
-        
         <div id="npc-text" class="npc-msg">Hi there! Ready to practice?</div>
-        
         <div id="timer-display">10</div>
-
         <div id="status">PLEASE WAIT</div>
         <div class="controls"><center>
             <button id="mic-btn" class="mic-btn" onclick="handleMicClick()">
                 <span id="mic-icon" style="font-size:30px">🎤</span>
                 <span id="mic-text">START</span>
             </button>
+            <button id="skip-btn" class="skip-btn" onclick="skipQuestion()">⏩ Too hard? Skip it!</button>
             <button id="retry-btn" class="retry-btn" onclick="resetGame()">🔄 Play Again</button>
         </center></div>
-        
         <div id="hint-box" class="hint-overlay"><strong>💡 Hint:</strong><br><span id="hint-text"></span></div>
     </div>
 
     <script>
         let scenario = []; let step = -1; let isRecording = false; 
         let countdownValue = 10; let countdownInterval;
-        
+        let failCount = 0; // 错误计数器
+
         const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         rec.lang = 'en-US';
-        rec.continuous = false; // 确保识别到一段话就结束
 
         async function loadData() {
             const urlParams = new URLSearchParams(window.location.search);
             const dateParam = urlParams.get('date') || '20260205'; 
-            const path = `./data/${dateParam}.json`; 
             try {
-                const response = await fetch(path);
+                const response = await fetch(`./data/${dateParam}.json`);
                 if (!response.ok) throw new Error();
                 scenario = await response.json();
                 document.getElementById('npc-text').innerText = "Hi there! Ready to practice?";
@@ -95,8 +105,10 @@
 
         function startStep() {
             clearInterval(countdownInterval);
+            failCount = 0; // 重置本题错误计数
             document.getElementById('timer-display').style.visibility = 'hidden';
             document.getElementById('hint-box').style.display = 'none';
+            document.getElementById('skip-btn').style.display = 'none';
             
             if (step >= scenario.length) {
                 updateUI("Lesson Complete!", "You're a Pro!", "🏆");
@@ -120,7 +132,6 @@
             } else { vHint.style.display = 'none'; }
             
             document.getElementById('progress-inner').style.width = ((step/scenario.length)*100) + "%";
-            
             speak(current.q, () => {
                 document.getElementById('status').innerText = "TAP TO SPEAK";
                 document.getElementById('mic-text').innerText = "TALK";
@@ -133,7 +144,6 @@
             const timerDisplay = document.getElementById('timer-display');
             timerDisplay.style.visibility = 'visible';
             timerDisplay.innerText = countdownValue;
-
             countdownInterval = setInterval(() => {
                 countdownValue--;
                 timerDisplay.innerText = countdownValue;
@@ -150,13 +160,11 @@
             const current = scenario[step];
             stopRecording();
             
-            // 逻辑更新：1. 检查是否说 I don't know  2. 检查是否匹配短答案或长句子
-            if (speech.includes("don't know") || speech.includes("dont know") || speech.includes("i don't know")) {
-                handleFailure("No worries! Let's learn.");
+            if (speech.includes("don't know") || speech.includes("dont know")) {
+                handleFailure("No worries!");
                 return;
             }
 
-            // 必须完整包含短答案(keys)中的词组，或者完整长句
             const matchShort = current.keys.some(k => speech.includes(k.toLowerCase()));
             const matchLong = speech.includes(current.full.toLowerCase().replace(/[.,!?]/g, ""));
 
@@ -170,19 +178,31 @@
 
         function handleFailure(customMsg) {
             clearInterval(countdownInterval);
+            failCount++; // 增加错误计数
             const current = scenario[step];
-            const feedbackText = `Try saying: "${current.full}"`;
             
+            // 如果错误达到4次，显示 Skip 按钮
+            if (failCount >= 4) {
+                document.getElementById('skip-btn').style.display = 'inline-block';
+            }
+
+            const feedbackText = `Try saying: "${current.full}"`;
             document.getElementById('npc-text').innerText = feedbackText;
             document.getElementById('npc-text').style.color = "#d32f2f";
             document.getElementById('timer-display').style.visibility = 'hidden';
-            
             document.getElementById('big-emoji').innerText = "📢";
-            document.getElementById('status').innerText = customMsg || "Follow the Teacher";
+            document.getElementById('status').innerText = customMsg || "Keep trying!";
             
             speak((customMsg || "") + " Try saying: " + current.full, () => {
                 document.getElementById('npc-text').style.color = "#1b5e20";
                 startRecording();
+            });
+        }
+
+        function skipQuestion() {
+            speak("No problem, let's move to the next one.", () => {
+                step++;
+                startStep();
             });
         }
 
