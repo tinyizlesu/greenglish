@@ -1,0 +1,23 @@
+[
+  { "q": "What did you do today?", "keys": ["played", "game"], "full": "I played a game today.", "emoji": "🎮", "visual": "（玩游戏）" },
+  { "q": "Did you play by yourself?", "keys": ["no", "friends"], "full": "No, I played with my friends.", "emoji": "👥", "visual": "（和朋友一起）" },
+  { "q": "How many friends?", "keys": ["2", "two"], "full": "I played with 2 friends.", "emoji": "✌️", "visual": "（2个）" },
+  { "q": "What did you do this morning?", "keys": ["grandma", "went"], "full": "I went to my grandma’s place.", "emoji": "👵", "visual": "（去祖母家）" },
+  { "q": "What do you want to do tomorrow?", "keys": ["shopping", "mall"], "full": "I want to go to the shopping mall.", "emoji": "🛍️", "visual": "（去购物中心）" },
+  { "q": "What do you want to buy?", "keys": ["cloths", "strawberries"], "full": "I want to buy cloths and strawberries.", "emoji": "🍓", "visual": "（衣服和草莓）" },
+  { "q": "What time do you want to go?", "keys": ["not sure", "sure"], "full": "I am not sure.", "emoji": "⌚", "visual": "（不确定）" },
+  { "q": "Do you take medicine when you are sick?", "keys": ["yes", "do"], "full": "Yes, I take medicine when I am sick.", "emoji": "💊", "visual": "（是的）" },
+  { "q": "How many students in your class?", "keys": ["45", "forty-five"], "full": "There are 45 students in my class.", "emoji": "🏫", "visual": "（45）" },
+  { "q": "What do you want to do this afternoon?", "keys": ["factory"], "full": "I want to go to a factory.", "emoji": "🏭", "visual": "（去工厂）" },
+  { "q": "What kind of factory do you want to go to?", "keys": ["flame", "retardant"], "full": "I will go to a flame retardant factory.", "emoji": "🔥", "visual": "（阻燃剂工厂）" },
+  { "q": "Who will take you there?", "keys": ["dad", "father"], "full": "My dad will take me there.", "emoji": "🚗", "visual": "（爸爸）" },
+  { "q": "Why do you go to the flame retardant factory?", "keys": ["fun"], "full": "Just for fun.", "emoji": "😊", "visual": "（好玩，想去玩）" },
+  { "q": "Can I join you?", "keys": ["yes", "no", "sorry"], "full": "Yes, you can. / No, sorry.", "emoji": "🙋", "visual": "" },
+  { "q": "What day is today?", "keys": ["feb", "12", "12th"], "full": "It's Feb 12th.", "emoji": "📅", "visual": "（2月12日）" },
+  { "q": "It’s your mum’s birthday today!", "keys": ["yes", "it is"], "full": "Yes, it is.", "emoji": "🎂", "visual": "" },
+  { "q": "Did you say Happy Birthday to your mum?", "keys": ["yes", "did"], "full": "Yes, I did.", "emoji": "💖", "visual": "" },
+  { "q": "Are you going to do anything special?", "keys": ["dinner", "take"], "full": "Yes, I will take her out for dinner.", "emoji": "🍴", "visual": "（带她出去吃饭）" },
+  { "q": "What time will you go out?", "keys": ["6", "6pm"], "full": "We will go out at 6pm.", "emoji": "🕙", "visual": "" },
+  { "q": "What time is it?", "keys": ["6", "6pm"], "full": "It's 6pm.", "emoji": "⌚", "visual": "（下午6点）" },
+  { "q": "What time is over there?", "keys": ["11", "11am"], "full": "It's 11 am.", "emoji": "🌏", "visual": "" }
+]
