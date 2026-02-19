@@ -11,23 +11,28 @@
         .header-emoji { font-size: 60px; margin-bottom: 10px; }
         .npc-msg { background: var(--grass-light); padding: 25px; border-radius: 25px; font-size: 22px; color: #1b5e20; margin-bottom: 20px; min-height: 80px; line-height: 1.5; position: relative; font-weight: 600; }
         .npc-msg::after { content: ''; position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); border-width: 15px 15px 0; border-style: solid; border-color: var(--grass-light) transparent; }
+        
         #visual-hint { display: none; background: #fff; border: 2px solid var(--gold); border-radius: 10px; padding: 15px; margin: 10px auto; width: 80%; }
+        #visual-text { color: #d32f2f; font-weight: bold; margin-bottom: 5px; font-size: 18px; }
         #visual-img { width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px; margin-top: 10px; }
         
-        /* 按钮区域布局 */
-        .controls { margin-top: 30px; display: flex; align-items: center; justify-content: center; gap: 15px; }
-        .nav-btn { background: #fff; border: 2px solid var(--golf-green); color: var(--golf-green); padding: 10px 15px; border-radius: 15px; cursor: pointer; font-weight: bold; transition: 0.3s; visibility: hidden; }
+        /* 计时器样式 */
+        #timer-container { width: 60%; height: 8px; background: #eee; margin: 15px auto; border-radius: 10px; overflow: hidden; display: none; border: 1px solid #ddd; }
+        #timer-bar { height: 100%; background: var(--accent); width: 100%; }
+
+        .controls { margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 20px; }
+        .nav-btn { background: #fff; border: 2px solid var(--golf-green); color: var(--golf-green); padding: 12px 18px; border-radius: 15px; cursor: pointer; font-weight: bold; visibility: hidden; transition: 0.2s; }
         .nav-btn:hover { background: var(--grass-light); }
         
-        .mic-btn { width: 100px; height: 100px; border-radius: 50%; border: 6px solid white; cursor: pointer; background: var(--golf-green); color: white; font-size: 16px; font-weight: bold; transition: all 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.2); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .mic-btn { width: 110px; height: 110px; border-radius: 50%; border: 6px solid white; cursor: pointer; background: var(--golf-green); color: white; font-size: 16px; font-weight: bold; transition: all 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.2); display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .mic-btn.recording { background: var(--accent); animation: pulse 1.5s infinite; }
         
-        .retry-btn { display: none; padding: 15px 35px; background: var(--gold); border: none; color: #5d4037; border-radius: 50px; font-size: 18px; font-weight: bold; cursor: pointer; }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0px rgba(230, 57, 70, 0.7); } 100% { box-shadow: 0 0 0 20px rgba(230, 57, 70, 0); } }
         
-        #status { margin-top: 20px; font-weight: bold; color: #777; letter-spacing: 1px; font-size: 14px; }
+        #status { margin-top: 10px; font-weight: bold; color: #777; letter-spacing: 1px; font-size: 14px; text-transform: uppercase; }
         .progress-container { width: 100%; background: #eee; height: 12px; border-radius: 10px; margin-bottom: 25px; overflow: hidden; }
         #progress-inner { height: 100%; background: linear-gradient(90deg, #4caf50, #2d5a27); width: 0%; transition: 0.5s; }
+        .retry-btn { display: none; padding: 15px 35px; background: var(--gold); border: none; border-radius: 50px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -36,22 +41,22 @@
         <div class="progress-container"><div id="progress-inner"></div></div>
         
         <div id="visual-hint">
-            <div id="visual-text" style="color: #d32f2f; font-weight: bold; margin-bottom: 5px;"></div>
+            <div id="visual-text"></div>
             <img id="visual-img" src="" style="display:none;">
         </div>
         
         <div id="npc-text" class="npc-msg">Hi there! Ready to practice?</div>
         
         <div id="status">PLEASE WAIT</div>
+
+        <div id="timer-container"><div id="timer-bar"></div></div>
         
         <div class="controls">
             <button id="back-btn" class="nav-btn" onclick="goBack()">◀ Back</button>
-            
             <button id="mic-btn" class="mic-btn" onclick="handleMicClick()">
-                <span id="mic-icon" style="font-size:24px">🎤</span>
+                <span id="mic-icon" style="font-size:28px">🎤</span>
                 <span id="mic-text">START</span>
             </button>
-            
             <button id="skip-btn" class="nav-btn" onclick="goNext()">Skip ▶</button>
         </div>
         
@@ -60,6 +65,9 @@
 
     <script>
         let scenario = []; let step = -1; let isRecording = false;
+        let countdownTimer; 
+        const COUNTDOWN_TIME = 10000; // 修改为 10000 毫秒（即 10 秒）
+        
         const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         rec.lang = 'en-US';
         rec.continuous = false;
@@ -75,6 +83,7 @@
                 document.getElementById('status').innerText = "PRESS START";
             } catch (err) {
                 document.getElementById('npc-text').innerText = "Lesson Not Found: " + dateParam;
+                document.getElementById('status').innerText = "ERROR";
             }
         }
         loadData();
@@ -94,28 +103,12 @@
             if (isRecording) stopRecording(); else startRecording();
         }
 
-        function goBack() {
-            if (step > 0) {
-                stopRecording();
-                window.speechSynthesis.cancel();
-                step--;
-                startStep();
-            }
-        }
-
-        function goNext() {
-            if (step < scenario.length) {
-                stopRecording();
-                window.speechSynthesis.cancel();
-                step++;
-                startStep();
-            }
-        }
-
         function startStep() {
+            clearTimeout(countdownTimer);
+            resetTimerUI();
             if (step >= scenario.length) {
                 updateUI("Lesson Complete!", "You're a Pro!", "🏆");
-                speak("Fantastic job!");
+                speak("Fantastic job! You've finished the lesson.");
                 document.getElementById('mic-btn').style.display = 'none';
                 document.getElementById('back-btn').style.visibility = 'hidden';
                 document.getElementById('skip-btn').style.visibility = 'hidden';
@@ -123,7 +116,6 @@
                 return;
             }
 
-            // 控制导航按钮显示
             document.getElementById('back-btn').style.visibility = step > 0 ? 'visible' : 'hidden';
             document.getElementById('skip-btn').style.visibility = 'visible';
 
@@ -134,7 +126,6 @@
 
             updateUI(englishQuestion, "Listening...", current.emoji);
             
-            // 提示区域逻辑
             const vHint = document.getElementById('visual-hint');
             const vText = document.getElementById('visual-text');
             const vImg = document.getElementById('visual-img');
@@ -156,6 +147,7 @@
         }
 
         rec.onresult = (e) => {
+            clearTimeout(countdownTimer);
             const speech = e.results[0][0].transcript.toLowerCase();
             const current = scenario[step];
             if (current.keys.some(k => speech.includes(k.toLowerCase()))) {
@@ -170,33 +162,76 @@
             isRecording = false;
             document.getElementById('mic-btn').classList.remove('recording');
             document.getElementById('mic-icon').innerText = "🎤";
+            document.getElementById('timer-container').style.display = 'none';
             if (step !== -1 && step < scenario.length) document.getElementById('mic-text').innerText = "TALK";
         };
 
         rec.onerror = () => stopRecording();
 
+        function startRecording() { 
+            try { 
+                rec.start(); 
+                isRecording = true; 
+                document.getElementById('mic-btn').classList.add('recording'); 
+                document.getElementById('mic-icon').innerText = "🛑";
+                
+                const timerBar = document.getElementById('timer-bar');
+                document.getElementById('timer-container').style.display = 'block';
+                timerBar.style.transition = 'none';
+                timerBar.style.width = '100%';
+                
+                setTimeout(() => {
+                    timerBar.style.transition = `width ${COUNTDOWN_TIME}ms linear`;
+                    timerBar.style.width = '0%';
+                }, 10);
+
+                countdownTimer = setTimeout(() => {
+                    if(isRecording) {
+                        stopRecording();
+                        handleFailure();
+                    }
+                }, COUNTDOWN_TIME);
+
+            } catch(e){} 
+        }
+
+        function stopRecording() { 
+            clearTimeout(countdownTimer);
+            try { rec.stop(); } catch(e){} 
+        }
+
         function handleFailure() {
+            clearTimeout(countdownTimer);
             const current = scenario[step];
             const feedbackText = `Try saying: "${current.full}"`;
             document.getElementById('npc-text').innerText = feedbackText;
             document.getElementById('npc-text').style.color = "#d32f2f";
             document.getElementById('big-emoji').innerText = "📢";
+            document.getElementById('status').innerText = "PLEASE FOLLOW";
+            
             speak("Try saying: " + current.full, () => {
                 document.getElementById('npc-text').style.color = "#1b5e20";
                 startRecording();
             });
         }
 
-        function startRecording() { 
-            try { 
-                rec.start(); isRecording = true; 
-                document.getElementById('mic-btn').classList.add('recording'); 
-                document.getElementById('mic-icon').innerText = "🛑";
-                document.getElementById('mic-text').innerText = "STOP";
-            } catch(e){} 
+        function resetTimerUI() {
+            document.getElementById('timer-container').style.display = 'none';
+            document.getElementById('timer-bar').style.transition = 'none';
+            document.getElementById('timer-bar').style.width = '100%';
         }
 
-        function stopRecording() { try { rec.stop(); } catch(e){} }
+        function goBack() { 
+            stopRecording(); 
+            window.speechSynthesis.cancel(); 
+            if (step > 0) { step--; startStep(); }
+        }
+        
+        function goNext() { 
+            stopRecording(); 
+            window.speechSynthesis.cancel(); 
+            if (step < scenario.length) { step++; startStep(); }
+        }
 
         function updateUI(n, s, e) { 
             document.getElementById('npc-text').innerText = n; 
