@@ -62,13 +62,13 @@
         }
         loadData();
 
-        // 核心修复：彻底清理所有标点符号
-        function clean(text) {
-            if (!text) return "";
-            return text.toLowerCase()
-                       .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()']/g, "") // 删除所有标点
-                       .replace(/\s\s+/g, ' ') // 多个空格转为一个
-                       .trim();
+        // 强力清洗：剔除所有撇号和标点
+        function clean(t) { 
+            return t.toLowerCase()
+                    .replace(/['’‘`]/g, "") // 彻底删除各种撇号
+                    .replace(/[.,\/#!$%\^&\*;:{}=\-_~()]/g, "") 
+                    .replace(/\s\s+/g, ' ')
+                    .trim(); 
         }
 
         function speak(text, callback) {
@@ -91,14 +91,10 @@
                 const cleanK = clean(k);
                 const kWords = cleanK.split(' ');
                 
-                // 1. 完全包含匹配
+                // 1. 包含核心词组
                 if (speech.includes(cleanK)) return true;
                 
-                // 2. 单词边界正则匹配
-                const regex = new RegExp("\\b" + cleanK + "\\b", "i");
-                if (regex.test(speech)) return true;
-
-                // 3. 核心词加权匹配 (针对长句，命中 60% 单词即过)
+                // 2. 核心词比率匹配
                 let matchCount = 0;
                 kWords.forEach(word => { if (speechWords.includes(word)) matchCount++; });
                 if (matchCount / kWords.length >= 0.6) return true;
@@ -124,35 +120,79 @@
             });
         }
 
-        function handleMicClick() { if (step === -1) { step = 0; startStep(); return; } if (isRecording) stopRecording(); else startRecording(); }
+        function handleMicClick() { 
+            if (step === -1) { step = 0; startStep(); return; } 
+            if (isRecording) stopRecording(); else startRecording(); 
+        }
+
         function startStep() {
             clearTimeout(countdownTimer); resetTimerUI();
-            if (step >= scenario.length) { updateUI("Complete!", "Pro!", "🏆"); speak("Great job!"); document.getElementById('mic-btn').style.display='none'; document.getElementById('retry-btn').style.display='inline-block'; return; }
+            const micBtn = document.getElementById('mic-btn');
+            
+            if (step >= scenario.length) { 
+                updateUI("Complete!", "Pro!", "🏆"); 
+                speak("Fantastic!"); 
+                micBtn.style.display='none'; 
+                document.getElementById('retry-btn').style.display='inline-block'; 
+                document.getElementById('back-btn').style.visibility='visible'; 
+                document.getElementById('skip-btn').style.visibility='hidden';
+                return; 
+            }
+
+            // 核心修复：返回前面题时重新显示 TALK 按钮
+            micBtn.style.display='flex';
+            document.getElementById('retry-btn').style.display='none';
             document.getElementById('back-btn').style.visibility = step > 0 ? 'visible' : 'hidden';
             document.getElementById('skip-btn').style.visibility = 'visible';
+
             const cur = scenario[step];
             const qEng = cur.q.replace(/[\u4e00-\u9fa5]|（[^）]*）|\([^)]*\)/g, "").trim();
             updateUI(qEng, "Listening...", cur.emoji);
+            
             const cMatch = cur.q.match(/[\u4e00-\u9fa5]|（[^）]*）|\([^)]*\)/g);
-            document.getElementById('visual-hint').style.display = (cMatch || cur.visual) ? 'block' : 'none';
+            const vHint = document.getElementById('visual-hint');
+            vHint.style.display = (cMatch || cur.visual) ? 'block' : 'none';
             document.getElementById('visual-text').innerText = (cMatch ? cMatch.join("") : "") || cur.visual || "";
+            
             document.getElementById('progress-inner').style.width = ((step/scenario.length)*100) + "%";
-            speak(qEng, () => { document.getElementById('status').innerText = "TAP TO SPEAK"; document.getElementById('mic-text').innerText = "TALK"; });
+            speak(qEng, () => { 
+                document.getElementById('status').innerText = "TAP TO SPEAK"; 
+                document.getElementById('mic-text').innerText = "TALK"; 
+            });
         }
-        rec.onend = () => { isRecording = false; document.getElementById('mic-btn').classList.remove('recording'); document.getElementById('mic-icon').innerText = "🎤"; document.getElementById('timer-container').style.display = 'none'; };
+
+        rec.onend = () => { 
+            isRecording = false; 
+            document.getElementById('mic-btn').classList.remove('recording'); 
+            document.getElementById('mic-icon').innerText = "🎤"; 
+            document.getElementById('timer-container').style.display = 'none'; 
+            if (step !== -1 && step < scenario.length) document.getElementById('mic-text').innerText = "TALK";
+        };
+
         function startRecording() { 
             try { 
-                rec.start(); isRecording = true; document.getElementById('mic-btn').classList.add('recording');
-                const tb = document.getElementById('timer-bar'); document.getElementById('timer-container').style.display = 'block';
+                rec.start(); isRecording = true; 
+                document.getElementById('mic-btn').classList.add('recording'); 
+                document.getElementById('mic-icon').innerText = "🛑";
+                const tb = document.getElementById('timer-bar'); 
+                document.getElementById('timer-container').style.display = 'block';
                 tb.style.transition = 'none'; tb.style.width = '100%';
-                setTimeout(() => { tb.style.transition = `width ${COUNTDOWN_TIME}ms linear`; tb.style.width = '0%'; }, 10);
+                setTimeout(() => { 
+                    tb.style.transition = `width ${COUNTDOWN_TIME}ms linear`; 
+                    tb.style.width = '0%'; 
+                }, 10);
                 countdownTimer = setTimeout(() => { if(isRecording) { stopRecording(); handleFailure(); } }, COUNTDOWN_TIME);
             } catch(e){} 
         }
         function stopRecording() { clearTimeout(countdownTimer); try { rec.stop(); } catch(e){} }
         function updateUI(n, s, e) { document.getElementById('npc-text').innerText = n; document.getElementById('npc-text').style.color = "#1b5e20"; document.getElementById('status').innerText = s; if(e) document.getElementById('big-emoji').innerText = e; }
         function resetTimerUI() { document.getElementById('timer-container').style.display = 'none'; document.getElementById('timer-bar').style.width = '100%'; }
-        function goBack() { stopRecording(); window.speechSynthesis.cancel(); if (step > 0) { step--; startStep(); } }
+        function goBack() { 
+            stopRecording(); 
+            window.speechSynthesis.cancel(); 
+            if (step > 0) { step--; startStep(); } 
+            else if (step === -1 || step >= scenario.length) { step = scenario.length - 1; startStep(); }
+        }
         function goNext() { stopRecording(); window.speechSynthesis.cancel(); if (step < scenario.length) { step++; startStep(); } }
         function resetGame() { location.reload(); }
     </script>
