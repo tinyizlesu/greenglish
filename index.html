@@ -64,6 +64,7 @@
 
         function cleanText(text) {
             if (!text) return "";
+            // 清理掉标点符号，保留空格
             return text.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()']/g, "").replace(/\s\s+/g, ' ').trim();
         }
 
@@ -81,10 +82,13 @@
             const speech = cleanText(e.results[0][0].transcript);
             const current = scenario[step];
             
-            // 改进匹配逻辑
+            // 核心修复：更严谨的匹配逻辑
             const isCorrect = current.keys.some(k => {
                 const cleanK = cleanText(k);
-                return speech.includes(cleanK) || cleanK.includes(speech);
+                // 使用正则确保是独立单词匹配，而不是子字符串匹配
+                // 例如：不再把 "know" 里的 "no" 当成正确答案
+                const regex = new RegExp("\\b" + cleanK + "\\b", "i");
+                return regex.test(speech);
             });
 
             if (isCorrect) {
@@ -96,7 +100,7 @@
         };
 
         function handleFailure() {
-            stopRecording(); // 确保停止录制状态
+            stopRecording();
             const current = scenario[step];
             const feedbackText = `Try saying: "${current.full}"`;
             document.getElementById('npc-text').innerText = feedbackText;
@@ -110,36 +114,25 @@
             });
         }
 
-        // --- 基础控制逻辑 ---
         function handleMicClick() { if (step === -1) { step = 0; startStep(); return; } if (isRecording) stopRecording(); else startRecording(); }
         
         function startStep() {
             clearTimeout(countdownTimer); resetTimerUI();
             if (step >= scenario.length) { updateUI("Complete!", "Pro!", "🏆"); speak("Fantastic!"); document.getElementById('mic-btn').style.display='none'; document.getElementById('retry-btn').style.display='inline-block'; document.getElementById('back-btn').style.visibility='hidden'; document.getElementById('skip-btn').style.visibility='hidden'; return; }
-            
             document.getElementById('back-btn').style.visibility = step > 0 ? 'visible' : 'hidden';
             document.getElementById('skip-btn').style.visibility = 'visible';
-            
             const current = scenario[step];
             const qClean = current.q.replace(/[\u4e00-\u9fa5]|（[^）]*）|\([^)]*\)/g, "").trim();
             updateUI(qClean, "Listening...", current.emoji);
-            
             const cMatch = current.q.match(/[\u4e00-\u9fa5]|（[^）]*）|\([^)]*\)/g);
             const vHint = document.getElementById('visual-hint');
             vHint.style.display = (cMatch || current.visual) ? 'block' : 'none';
             document.getElementById('visual-text').innerText = (cMatch ? cMatch.join("") : "") || current.visual || "";
-            
             document.getElementById('progress-inner').style.width = ((step/scenario.length)*100) + "%";
             speak(qClean, () => { document.getElementById('status').innerText = "TAP TO SPEAK"; document.getElementById('mic-text').innerText = "TALK"; });
         }
 
-        rec.onend = () => { 
-            isRecording = false; 
-            document.getElementById('mic-btn').classList.remove('recording'); 
-            document.getElementById('mic-icon').innerText = "🎤"; 
-            document.getElementById('timer-container').style.display = 'none'; 
-            if (step !== -1 && step < scenario.length) document.getElementById('mic-text').innerText = "TALK";
-        };
+        rec.onend = () => { isRecording = false; document.getElementById('mic-btn').classList.remove('recording'); document.getElementById('mic-icon').innerText = "🎤"; document.getElementById('timer-container').style.display = 'none'; if (step !== -1 && step < scenario.length) document.getElementById('mic-text').innerText = "TALK"; };
 
         function startRecording() { 
             try { 
