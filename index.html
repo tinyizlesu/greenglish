@@ -31,7 +31,7 @@
         <div class="header-emoji" id="big-emoji">⛳</div>
         <div class="progress-container"><div id="progress-inner"></div></div>
         <div id="visual-hint"><div id="visual-text"></div></div>
-        <div id="npc-text" class="npc-msg">Ready to practice?</div>
+        <div id="npc-text" class="npc-msg">Ready?</div>
         <div id="status">PRESS START</div>
         <div id="timer-container"><div id="timer-bar"></div></div>
         <div class="controls">
@@ -62,7 +62,14 @@
         }
         loadData();
 
-        function clean(t) { return t.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()']/g, "").replace(/\s\s+/g, ' ').trim(); }
+        // 核心修复：彻底清理所有标点符号
+        function clean(text) {
+            if (!text) return "";
+            return text.toLowerCase()
+                       .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()']/g, "") // 删除所有标点
+                       .replace(/\s\s+/g, ' ') // 多个空格转为一个
+                       .trim();
+        }
 
         function speak(text, callback) {
             window.speechSynthesis.cancel();
@@ -75,7 +82,8 @@
 
         rec.onresult = (e) => {
             clearTimeout(countdownTimer);
-            const speech = clean(e.results[0][0].transcript);
+            const rawSpeech = e.results[0][0].transcript;
+            const speech = clean(rawSpeech);
             const speechWords = speech.split(' ');
             const current = scenario[step];
             
@@ -83,14 +91,14 @@
                 const cleanK = clean(k);
                 const kWords = cleanK.split(' ');
                 
-                // 1. 完全词组匹配
+                // 1. 完全包含匹配
                 if (speech.includes(cleanK)) return true;
                 
-                // 2. 单词边界正则检查 (防止 know 误判为 no)
+                // 2. 单词边界正则匹配
                 const regex = new RegExp("\\b" + cleanK + "\\b", "i");
                 if (regex.test(speech)) return true;
 
-                // 3. 长句加权匹配：只要核心词出现 60% 以上就通过
+                // 3. 核心词加权匹配 (针对长句，命中 60% 单词即过)
                 let matchCount = 0;
                 kWords.forEach(word => { if (speechWords.includes(word)) matchCount++; });
                 if (matchCount / kWords.length >= 0.6) return true;
@@ -119,7 +127,7 @@
         function handleMicClick() { if (step === -1) { step = 0; startStep(); return; } if (isRecording) stopRecording(); else startRecording(); }
         function startStep() {
             clearTimeout(countdownTimer); resetTimerUI();
-            if (step >= scenario.length) { updateUI("Complete!", "Pro!", "🏆"); speak("Fantastic!"); document.getElementById('mic-btn').style.display='none'; document.getElementById('retry-btn').style.display='inline-block'; return; }
+            if (step >= scenario.length) { updateUI("Complete!", "Pro!", "🏆"); speak("Great job!"); document.getElementById('mic-btn').style.display='none'; document.getElementById('retry-btn').style.display='inline-block'; return; }
             document.getElementById('back-btn').style.visibility = step > 0 ? 'visible' : 'hidden';
             document.getElementById('skip-btn').style.visibility = 'visible';
             const cur = scenario[step];
