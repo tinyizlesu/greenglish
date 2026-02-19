@@ -6,7 +6,6 @@
   { "q": "What did you do during the Spring Festival? (看电影了)", "keys": ["watched a movie", "movie"], "full": "I watched a movie.", "emoji": "🎬", "visual": "🎥 Watch a movie" },
   { "q": "Did you enjoy it?", "keys": ["yes", "no"], "full": "Yes, I did.", "emoji": "👍" },
   { "q": "How long were you there? (2小时)", "keys": ["2", "2 hours", "two hours"], "full": "I was there for 2 hours.", "emoji": "⏰", "visual": "⏳ 2 hours" },
-  { "q": "Who did you celebrate the Spring Festival with? (父母、妹妹和祖母)", "keys": ["my parents, my sister and my grandma", "parents, sister and grandma"], "full": "I celebrated it with my parents, my sister and my grandma.", "emoji": "👨‍👩‍👧‍👦", "visual": "👨‍👩‍👧‍👦 Parents, sister & grandma" },
   { "q": "Do you have any cousins?", "keys": ["yes", "no"], "full": "Yes, I do.", "emoji": "👦" },
   { "q": "How many cousins do you have?", "keys": ["6", "six"], "full": "I have 6 cousins.", "emoji": "🧒", "visual": "🔢 6 cousins" },
   { "q": "When did you eat the New Year’s Eve dinner?", "keys": ["12 a.m.", "12 am", "midnight"], "full": "I ate it at 12 a.m.", "emoji": "🥣" },
