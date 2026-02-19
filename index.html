@@ -16,7 +16,7 @@
         #timer-container { width: 60%; height: 8px; background: #eee; margin: 15px auto; border-radius: 10px; overflow: hidden; display: none; border: 1px solid #ddd; }
         #timer-bar { height: 100%; background: var(--accent); width: 100%; }
         .controls { margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 20px; }
-        .nav-btn { background: #fff; border: 2px solid var(--golf-green); color: var(--golf-green); padding: 12px 18px; border-radius: 15px; cursor: pointer; font-weight: bold; visibility: hidden; transition: 0.2s; }
+        .nav-btn { background: #fff; border: 2px solid var(--golf-green); color: var(--golf-green); padding: 12px 18px; border-radius: 15px; cursor: pointer; font-weight: bold; visibility: hidden; }
         .mic-btn { width: 110px; height: 110px; border-radius: 50%; border: 6px solid white; cursor: pointer; background: var(--golf-green); color: white; font-size: 16px; font-weight: bold; transition: all 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.2); display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .mic-btn.recording { background: var(--accent); animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0px rgba(230, 57, 70, 0.7); } 100% { box-shadow: 0 0 0 20px rgba(230, 57, 70, 0); } }
@@ -31,8 +31,8 @@
         <div class="header-emoji" id="big-emoji">⛳</div>
         <div class="progress-container"><div id="progress-inner"></div></div>
         <div id="visual-hint"><div id="visual-text"></div></div>
-        <div id="npc-text" class="npc-msg">Hi there! Ready to practice?</div>
-        <div id="status">PLEASE WAIT</div>
+        <div id="npc-text" class="npc-msg">Ready to practice?</div>
+        <div id="status">PRESS START</div>
         <div id="timer-container"><div id="timer-bar"></div></div>
         <div class="controls">
             <button id="back-btn" class="nav-btn" onclick="goBack()">◀ Back</button>
@@ -53,7 +53,7 @@
 
         async function loadData() {
             const urlParams = new URLSearchParams(window.location.search);
-            const dateParam = urlParams.get('date') || '20260205'; 
+            const dateParam = urlParams.get('date') || '20260219'; 
             try {
                 const response = await fetch(`./data/${dateParam}.json`);
                 scenario = await response.json();
@@ -62,16 +62,12 @@
         }
         loadData();
 
-        function cleanText(text) {
-            if (!text) return "";
-            // 清理掉标点符号，保留空格
-            return text.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()']/g, "").replace(/\s\s+/g, ' ').trim();
-        }
+        function clean(t) { return t.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()']/g, "").replace(/\s\s+/g, ' ').trim(); }
 
         function speak(text, callback) {
             window.speechSynthesis.cancel();
-            const englishOnly = text.replace(/[\u4e00-\u9fa5]|（[^）]*）|\([^)]*\)/g, "").trim();
-            const m = new SpeechSynthesisUtterance(englishOnly);
+            const eng = text.replace(/[\u4e00-\u9fa5]|（[^）]*）|\([^)]*\)/g, "").trim();
+            const m = new SpeechSynthesisUtterance(eng);
             m.lang = 'en-US'; m.rate = 0.9;
             if (callback) m.onend = callback;
             window.speechSynthesis.speak(m);
@@ -79,35 +75,41 @@
 
         rec.onresult = (e) => {
             clearTimeout(countdownTimer);
-            const speech = cleanText(e.results[0][0].transcript);
+            const speech = clean(e.results[0][0].transcript);
+            const speechWords = speech.split(' ');
             const current = scenario[step];
             
-            // 核心修复：更严谨的匹配逻辑
             const isCorrect = current.keys.some(k => {
-                const cleanK = cleanText(k);
-                // 使用正则确保是独立单词匹配，而不是子字符串匹配
-                // 例如：不再把 "know" 里的 "no" 当成正确答案
+                const cleanK = clean(k);
+                const kWords = cleanK.split(' ');
+                
+                // 1. 完全词组匹配
+                if (speech.includes(cleanK)) return true;
+                
+                // 2. 单词边界正则检查 (防止 know 误判为 no)
                 const regex = new RegExp("\\b" + cleanK + "\\b", "i");
-                return regex.test(speech);
+                if (regex.test(speech)) return true;
+
+                // 3. 长句加权匹配：只要核心词出现 60% 以上就通过
+                let matchCount = 0;
+                kWords.forEach(word => { if (speechWords.includes(word)) matchCount++; });
+                if (matchCount / kWords.length >= 0.6) return true;
+
+                return false;
             });
 
             if (isCorrect) {
                 document.getElementById('big-emoji').innerText = "✅";
                 speak("Great!", () => { step++; setTimeout(startStep, 800); });
-            } else { 
-                handleFailure(); 
-            }
+            } else { handleFailure(); }
         };
 
         function handleFailure() {
             stopRecording();
             const current = scenario[step];
-            const feedbackText = `Try saying: "${current.full}"`;
-            document.getElementById('npc-text').innerText = feedbackText;
+            document.getElementById('npc-text').innerText = `Try: "${current.full}"`;
             document.getElementById('npc-text').style.color = "#d32f2f";
             document.getElementById('big-emoji').innerText = "📢";
-            document.getElementById('status').innerText = "PLEASE FOLLOW";
-            
             speak("Try saying: " + current.full, () => {
                 document.getElementById('npc-text').style.color = "#1b5e20";
                 startRecording();
@@ -115,38 +117,33 @@
         }
 
         function handleMicClick() { if (step === -1) { step = 0; startStep(); return; } if (isRecording) stopRecording(); else startRecording(); }
-        
         function startStep() {
             clearTimeout(countdownTimer); resetTimerUI();
-            if (step >= scenario.length) { updateUI("Complete!", "Pro!", "🏆"); speak("Fantastic!"); document.getElementById('mic-btn').style.display='none'; document.getElementById('retry-btn').style.display='inline-block'; document.getElementById('back-btn').style.visibility='hidden'; document.getElementById('skip-btn').style.visibility='hidden'; return; }
+            if (step >= scenario.length) { updateUI("Complete!", "Pro!", "🏆"); speak("Fantastic!"); document.getElementById('mic-btn').style.display='none'; document.getElementById('retry-btn').style.display='inline-block'; return; }
             document.getElementById('back-btn').style.visibility = step > 0 ? 'visible' : 'hidden';
             document.getElementById('skip-btn').style.visibility = 'visible';
-            const current = scenario[step];
-            const qClean = current.q.replace(/[\u4e00-\u9fa5]|（[^）]*）|\([^)]*\)/g, "").trim();
-            updateUI(qClean, "Listening...", current.emoji);
-            const cMatch = current.q.match(/[\u4e00-\u9fa5]|（[^）]*）|\([^)]*\)/g);
-            const vHint = document.getElementById('visual-hint');
-            vHint.style.display = (cMatch || current.visual) ? 'block' : 'none';
-            document.getElementById('visual-text').innerText = (cMatch ? cMatch.join("") : "") || current.visual || "";
+            const cur = scenario[step];
+            const qEng = cur.q.replace(/[\u4e00-\u9fa5]|（[^）]*）|\([^)]*\)/g, "").trim();
+            updateUI(qEng, "Listening...", cur.emoji);
+            const cMatch = cur.q.match(/[\u4e00-\u9fa5]|（[^）]*）|\([^)]*\)/g);
+            document.getElementById('visual-hint').style.display = (cMatch || cur.visual) ? 'block' : 'none';
+            document.getElementById('visual-text').innerText = (cMatch ? cMatch.join("") : "") || cur.visual || "";
             document.getElementById('progress-inner').style.width = ((step/scenario.length)*100) + "%";
-            speak(qClean, () => { document.getElementById('status').innerText = "TAP TO SPEAK"; document.getElementById('mic-text').innerText = "TALK"; });
+            speak(qEng, () => { document.getElementById('status').innerText = "TAP TO SPEAK"; document.getElementById('mic-text').innerText = "TALK"; });
         }
-
-        rec.onend = () => { isRecording = false; document.getElementById('mic-btn').classList.remove('recording'); document.getElementById('mic-icon').innerText = "🎤"; document.getElementById('timer-container').style.display = 'none'; if (step !== -1 && step < scenario.length) document.getElementById('mic-text').innerText = "TALK"; };
-
+        rec.onend = () => { isRecording = false; document.getElementById('mic-btn').classList.remove('recording'); document.getElementById('mic-icon').innerText = "🎤"; document.getElementById('timer-container').style.display = 'none'; };
         function startRecording() { 
             try { 
-                rec.start(); isRecording = true; document.getElementById('mic-btn').classList.add('recording'); document.getElementById('mic-icon').innerText = "🛑";
+                rec.start(); isRecording = true; document.getElementById('mic-btn').classList.add('recording');
                 const tb = document.getElementById('timer-bar'); document.getElementById('timer-container').style.display = 'block';
                 tb.style.transition = 'none'; tb.style.width = '100%';
                 setTimeout(() => { tb.style.transition = `width ${COUNTDOWN_TIME}ms linear`; tb.style.width = '0%'; }, 10);
                 countdownTimer = setTimeout(() => { if(isRecording) { stopRecording(); handleFailure(); } }, COUNTDOWN_TIME);
             } catch(e){} 
         }
-
         function stopRecording() { clearTimeout(countdownTimer); try { rec.stop(); } catch(e){} }
         function updateUI(n, s, e) { document.getElementById('npc-text').innerText = n; document.getElementById('npc-text').style.color = "#1b5e20"; document.getElementById('status').innerText = s; if(e) document.getElementById('big-emoji').innerText = e; }
-        function resetTimerUI() { document.getElementById('timer-container').style.display = 'none'; document.getElementById('timer-bar').style.transition = 'none'; document.getElementById('timer-bar').style.width = '100%'; }
+        function resetTimerUI() { document.getElementById('timer-container').style.display = 'none'; document.getElementById('timer-bar').style.width = '100%'; }
         function goBack() { stopRecording(); window.speechSynthesis.cancel(); if (step > 0) { step--; startStep(); } }
         function goNext() { stopRecording(); window.speechSynthesis.cancel(); if (step < scenario.length) { step++; startStep(); } }
         function resetGame() { location.reload(); }
