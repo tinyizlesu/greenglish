@@ -13,7 +13,7 @@
   { "q": "Where do you usually celebrate the Spring Festival? (祖父母家)", "keys": ["grandparents place", "grandparents' place"], "full": "I celebrate it at my grandparents' place.", "emoji": "👵", "visual": "🏡 Grandparents' place" },
   { "q": "What special food do you eat?", "keys": ["dumplings"], "full": "We eat dumplings.", "emoji": "🥟" },
   { "q": "What do children usually do during the Spring Festival?", "keys": ["play games"], "full": "They usually play games.", "emoji": "🏃" },
-  { "q": "You look pretty today.", "keys": ["thank you", "thanks"], "full": "Thank you.", "emoji": "😊" },
+  { "q": "You look pretty today?", "keys": ["thank you", "thanks"], "full": "Thank you.", "emoji": "😊" },
   { "q": "What are you going to do today?", "keys": ["guangdong", "guangdong province"], "full": "I will go to Guangdong Province.", "emoji": "✈️" },
   { "q": "Which city will you go to? (不确定、不知道)", "keys": ["not sure", "don't know", "dont know"], "full": "I'm not sure / I don't know.", "emoji": "❓", "visual": "🤷 Not sure / Don't know" },
   { "q": "Who will you go with? (妈妈、爸爸和妹妹)", "keys": ["my mum my dad and my sister", "mum dad sister"], "full": "I will go with my mum, my dad and my sister.", "emoji": "👨‍👩‍👧" },
