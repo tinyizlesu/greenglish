@@ -13,13 +13,19 @@
         .npc-msg::after { content: ''; position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); border-width: 15px 15px 0; border-style: solid; border-color: var(--grass-light) transparent; }
         #visual-hint { display: none; background: #fff; border: 2px solid var(--gold); border-radius: 10px; padding: 15px; margin: 10px auto; width: 80%; }
         #visual-img { width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px; margin-top: 10px; }
-        .controls { margin-top: 30px; }
-        .mic-btn { width: 120px; height: 120px; border-radius: 50%; border: 8px solid white; cursor: pointer; background: var(--golf-green); color: white; font-size: 18px; font-weight: bold; transition: all 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.2); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        
+        /* 按钮区域布局 */
+        .controls { margin-top: 30px; display: flex; align-items: center; justify-content: center; gap: 15px; }
+        .nav-btn { background: #fff; border: 2px solid var(--golf-green); color: var(--golf-green); padding: 10px 15px; border-radius: 15px; cursor: pointer; font-weight: bold; transition: 0.3s; visibility: hidden; }
+        .nav-btn:hover { background: var(--grass-light); }
+        
+        .mic-btn { width: 100px; height: 100px; border-radius: 50%; border: 6px solid white; cursor: pointer; background: var(--golf-green); color: white; font-size: 16px; font-weight: bold; transition: all 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.2); display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .mic-btn.recording { background: var(--accent); animation: pulse 1.5s infinite; }
+        
         .retry-btn { display: none; padding: 15px 35px; background: var(--gold); border: none; color: #5d4037; border-radius: 50px; font-size: 18px; font-weight: bold; cursor: pointer; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0px rgba(230, 57, 70, 0.7); } 100% { box-shadow: 0 0 0 25px rgba(230, 57, 70, 0); } }
-        #status { margin-top: 20px; font-weight: bold; color: #777; letter-spacing: 1px; }
-        .hint-overlay { background: #fffde7; padding: 15px; border-radius: 20px; border: 2px dashed var(--gold); margin-top: 25px; display: none; color: #856404; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0px rgba(230, 57, 70, 0.7); } 100% { box-shadow: 0 0 0 20px rgba(230, 57, 70, 0); } }
+        
+        #status { margin-top: 20px; font-weight: bold; color: #777; letter-spacing: 1px; font-size: 14px; }
         .progress-container { width: 100%; background: #eee; height: 12px; border-radius: 10px; margin-bottom: 25px; overflow: hidden; }
         #progress-inner { height: 100%; background: linear-gradient(90deg, #4caf50, #2d5a27); width: 0%; transition: 0.5s; }
     </style>
@@ -28,6 +34,7 @@
     <div id="game-card">
         <div class="header-emoji" id="big-emoji">⛳</div>
         <div class="progress-container"><div id="progress-inner"></div></div>
+        
         <div id="visual-hint">
             <div id="visual-text" style="color: #d32f2f; font-weight: bold; margin-bottom: 5px;"></div>
             <img id="visual-img" src="" style="display:none;">
@@ -36,21 +43,26 @@
         <div id="npc-text" class="npc-msg">Hi there! Ready to practice?</div>
         
         <div id="status">PLEASE WAIT</div>
-        <div class="controls"><center>
+        
+        <div class="controls">
+            <button id="back-btn" class="nav-btn" onclick="goBack()">◀ Back</button>
+            
             <button id="mic-btn" class="mic-btn" onclick="handleMicClick()">
-                <span id="mic-icon" style="font-size:30px">🎤</span>
+                <span id="mic-icon" style="font-size:24px">🎤</span>
                 <span id="mic-text">START</span>
             </button>
-            <button id="retry-btn" class="retry-btn" onclick="resetGame()">🔄 Play Again</button>
-        </center></div>
+            
+            <button id="skip-btn" class="nav-btn" onclick="goNext()">Skip ▶</button>
+        </div>
         
-        <div id="hint-box" class="hint-overlay"><strong>💡 Hint:</strong><br><span id="hint-text"></span></div>
+        <center><button id="retry-btn" class="retry-btn" onclick="resetGame()">🔄 Play Again</button></center>
     </div>
 
     <script>
         let scenario = []; let step = -1; let isRecording = false;
         const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         rec.lang = 'en-US';
+        rec.continuous = false;
 
         async function loadData() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -60,16 +72,13 @@
                 const response = await fetch(path);
                 if (!response.ok) throw new Error();
                 scenario = await response.json();
-                document.getElementById('npc-text').innerText = "Hi there! Ready to practice?";
                 document.getElementById('status').innerText = "PRESS START";
             } catch (err) {
                 document.getElementById('npc-text').innerText = "Lesson Not Found: " + dateParam;
-                document.getElementById('status').innerText = "ERROR";
             }
         }
         loadData();
 
-        // 核心改动 1：发音过滤器
         function speak(text, callback) {
             window.speechSynthesis.cancel();
             const englishOnly = text.replace(/[\u4e00-\u9fa5]|（[^）]*）|\([^)]*\)/g, "").trim();
@@ -82,34 +91,53 @@
         function handleMicClick() {
             if (scenario.length === 0) return;
             if (step === -1) { step = 0; startStep(); return; }
-            if (!isRecording) startRecording(); else stopRecording();
+            if (isRecording) stopRecording(); else startRecording();
+        }
+
+        function goBack() {
+            if (step > 0) {
+                stopRecording();
+                window.speechSynthesis.cancel();
+                step--;
+                startStep();
+            }
+        }
+
+        function goNext() {
+            if (step < scenario.length) {
+                stopRecording();
+                window.speechSynthesis.cancel();
+                step++;
+                startStep();
+            }
         }
 
         function startStep() {
-            document.getElementById('hint-box').style.display = 'none';
             if (step >= scenario.length) {
                 updateUI("Lesson Complete!", "You're a Pro!", "🏆");
                 speak("Fantastic job!");
                 document.getElementById('mic-btn').style.display = 'none';
+                document.getElementById('back-btn').style.visibility = 'hidden';
+                document.getElementById('skip-btn').style.visibility = 'hidden';
                 document.getElementById('retry-btn').style.display = 'inline-block';
                 return;
             }
 
-            const current = scenario[step];
+            // 控制导航按钮显示
+            document.getElementById('back-btn').style.visibility = step > 0 ? 'visible' : 'hidden';
+            document.getElementById('skip-btn').style.visibility = 'visible';
 
-            // 核心改动 2：自动将 q 里的中文提取到黄色框中，将英文提取到绿色框中
+            const current = scenario[step];
             const chineseMatch = current.q.match(/[\u4e00-\u9fa5]|（[^）]*）|\([^)]*\)/g);
             const chineseHint = chineseMatch ? chineseMatch.join("") : "";
             const englishQuestion = current.q.replace(/[\u4e00-\u9fa5]|（[^）]*）|\([^)]*\)/g, "").trim();
 
-            // 绿色框：只显示纯英文问题
             updateUI(englishQuestion, "Listening...", current.emoji);
             
-            // 黄色框：优先显示 q 里的中文，如果没有，则显示 visual 里的内容
+            // 提示区域逻辑
             const vHint = document.getElementById('visual-hint');
             const vText = document.getElementById('visual-text');
             const vImg = document.getElementById('visual-img');
-            
             const hintToDisplay = chineseHint || current.visual || "";
             
             if (hintToDisplay || current.image) {
@@ -121,7 +149,6 @@
             
             document.getElementById('progress-inner').style.width = ((step/scenario.length)*100) + "%";
             
-            // 朗读
             speak(englishQuestion, () => {
                 document.getElementById('status').innerText = "TAP TO SPEAK";
                 document.getElementById('mic-text').innerText = "TALK";
@@ -131,12 +158,22 @@
         rec.onresult = (e) => {
             const speech = e.results[0][0].transcript.toLowerCase();
             const current = scenario[step];
-            stopRecording();
-            if (current.keys.some(k => speech.includes(k))) {
+            if (current.keys.some(k => speech.includes(k.toLowerCase()))) {
                 document.getElementById('big-emoji').innerText = "✅";
                 speak("Great!", () => { step++; setTimeout(startStep, 800); });
-            } else { handleFailure(); }
+            } else { 
+                handleFailure(); 
+            }
         };
+
+        rec.onend = () => {
+            isRecording = false;
+            document.getElementById('mic-btn').classList.remove('recording');
+            document.getElementById('mic-icon').innerText = "🎤";
+            if (step !== -1 && step < scenario.length) document.getElementById('mic-text').innerText = "TALK";
+        };
+
+        rec.onerror = () => stopRecording();
 
         function handleFailure() {
             const current = scenario[step];
@@ -144,16 +181,30 @@
             document.getElementById('npc-text').innerText = feedbackText;
             document.getElementById('npc-text').style.color = "#d32f2f";
             document.getElementById('big-emoji').innerText = "📢";
-            document.getElementById('status').innerText = "Please Follow";
             speak("Try saying: " + current.full, () => {
                 document.getElementById('npc-text').style.color = "#1b5e20";
                 startRecording();
             });
         }
 
-        function startRecording() { try { rec.start(); isRecording = true; document.getElementById('mic-btn').classList.add('recording'); } catch(e){} }
-        function stopRecording() { rec.stop(); isRecording = false; document.getElementById('mic-btn').classList.remove('recording'); }
-        function updateUI(n, s, e) { document.getElementById('npc-text').innerText = n; document.getElementById('npc-text').style.color = "#1b5e20"; document.getElementById('status').innerText = s; if(e) document.getElementById('big-emoji').innerText = e; }
+        function startRecording() { 
+            try { 
+                rec.start(); isRecording = true; 
+                document.getElementById('mic-btn').classList.add('recording'); 
+                document.getElementById('mic-icon').innerText = "🛑";
+                document.getElementById('mic-text').innerText = "STOP";
+            } catch(e){} 
+        }
+
+        function stopRecording() { try { rec.stop(); } catch(e){} }
+
+        function updateUI(n, s, e) { 
+            document.getElementById('npc-text').innerText = n; 
+            document.getElementById('npc-text').style.color = "#1b5e20"; 
+            document.getElementById('status').innerText = s; 
+            if(e) document.getElementById('big-emoji').innerText = e; 
+        }
+        
         function resetGame() { location.reload(); }
     </script>
 </body>
