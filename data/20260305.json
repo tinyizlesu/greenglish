@@ -1,16 +1,16 @@
 [
-  { "q": "What time did you finish school? (5:20)", "keys": ["5 20 pm", "5 20", "five twenty"], "full": "I finished school at 5 20 pm.", "emoji": "🏫" },
-  { "q": "How much water/milk do you drink every day?", "keys": ["2 glasses", "two glasses", "at least 2"], "full": "At least 2 glasses.", "emoji": "🥛" },
-  { "q": "How long is your computer class? (40分钟)", "keys": ["40 minutes", "forty minutes"], "full": "40 minutes.", "emoji": "💻" },
-  { "q": "How often do you play golf?", "keys": ["twice a week", "play golf twice"], "full": "I play golf twice a week.", "emoji": "⛳" },
-  { "q": "How far is your school from your home?", "keys": ["two kilometers", "2 kilometers", "2 km"], "full": "It's two kilometers from my home.", "emoji": "🚗" },
-  { "q": "How tall are you?（1.5米）", "keys": ["1 point 5 meters", "one point five", "150 cm"], "full": "I'm 1 point 5 meters tall.", "emoji": "📏", "visual": "📏 1.35m (1 point 35)" },
+  { "q": "What time did you finish school? (5:20)", "keys": ["five twenty", "five twenty pm"], "full": "I finished school at five twenty pm.", "emoji": "🏫" },
+  { "q": "How much water/milk do you drink every day?", "keys": ["two glasses", "at least two"], "full": "At least two glasses.", "emoji": "🥛" },
+  { "q": "How long is your computer class? (40分钟)", "keys": ["forty minutes"], "full": "Forty minutes.", "emoji": "💻" },
+  { "q": "How often do you play golf?", "keys": ["twice a week"], "full": "I play golf twice a week.", "emoji": "⛳" },
+  { "q": "How far is your school from your home?", "keys": ["two kilometers", "it is two kilometers"], "full": "It's two kilometers from my home.", "emoji": "🚗" },
+  { "q": "How tall are you? (1.5米)", "keys": ["one point five meters", "one point five"], "full": "I'm one point five meters tall.", "emoji": "📏", "visual": "📏 1.5 meters" },
   { "q": "How big is your toy?", "keys": ["not big", "not very big"], "full": "It's not very big.", "emoji": "🧸" },
-  { "q": "How heavy is the fish? (10kg)", "keys": ["10kg", "10 kilograms", "ten kg"], "full": "10kg.", "emoji": "🐟" },
-  { "q": "How do you go to school?", "keys": ["by car", "go by car"], "full": "I go to school by car.", "emoji": "🚗" },
-  { "q": "How old is your sister?", "keys": ["18 years old", "eighteen"], "full": "She is 18 years old.", "emoji": "👧" },
+  { "q": "How heavy is the fish? (10kg)", "keys": ["ten kilograms", "ten kg"], "full": "Ten kilograms.", "emoji": "🐟" },
+  { "q": "How do you go to school?", "keys": ["by car", "car"], "full": "I go to school by car.", "emoji": "🚗" },
+  { "q": "How old is your sister?", "keys": ["eighteen years old", "eighteen"], "full": "She is eighteen years old.", "emoji": "👧" },
   { "q": "What is your favorite shop? (盲盒玩具店)", "keys": ["blind box", "toy shop"], "full": "My favorite shop is blind box toy shop.", "emoji": "🎁" },
-  { "q": "How many shots did you hit? (97杆)", "keys": ["97 shots", "ninety seven"], "full": "I played 97 shots.", "emoji": "🏌️" },
+  { "q": "How many shots did you hit? (97杆)", "keys": ["ninety seven shots", "ninety seven"], "full": "I played ninety seven shots.", "emoji": "🏌️" },
   { "q": "When will you go back to school? (后天)", "keys": ["day after tomorrow"], "full": "The day after tomorrow.", "emoji": "🗓️" },
-  { "q": "What day is today? (3月2日)", "keys": ["march 2nd", "march second", "march 2"], "full": "Today is March 2nd.", "emoji": "📅" }
+  { "q": "What day is today? (3月2日)", "keys": ["march second", "march two"], "full": "Today is March second.", "emoji": "📅" }
 ]
