@@ -1,5 +1,5 @@
 [
-  { "q": "What time did you finish school? (5:20)", "keys": ["5 20 pm", "5 20", "five twenty"], "full": "I finished school at 5:20 pm.", "emoji": "🏫" },
+  { "q": "What time did you finish school? (5:20)", "keys": ["5 20 pm", "5 20", "five twenty"], "full": "I finished school at 5 20 pm.", "emoji": "🏫" },
   { "q": "How much water/milk do you drink every day?", "keys": ["2 glasses", "two glasses", "at least 2"], "full": "At least 2 glasses.", "emoji": "🥛" },
   { "q": "How long is your computer class? (40分钟)", "keys": ["40 minutes", "forty minutes"], "full": "40 minutes.", "emoji": "💻" },
   { "q": "How often do you play golf?", "keys": ["twice a week", "play golf twice"], "full": "I play golf twice a week.", "emoji": "⛳" },
