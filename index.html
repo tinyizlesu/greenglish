@@ -53,7 +53,7 @@
 
         async function loadData() {
             const urlParams = new URLSearchParams(window.location.search);
-            const dateParam = urlParams.get('date') || '20260219'; 
+            const dateParam = urlParams.get('date') || '20260305'; 
             try {
                 const response = await fetch(`./data/${dateParam}.json`);
                 scenario = await response.json();
@@ -62,11 +62,13 @@
         }
         loadData();
 
-        // 强力清洗：剔除所有撇号和标点
+        // 核心修复：这个函数确保 5:20 变成 5 20，1.5 变成 1 5
         function clean(t) { 
+            if(!t) return "";
             return t.toLowerCase()
-                    .replace(/['’‘`]/g, "") // 彻底删除各种撇号
-                    .replace(/[.,\/#!$%\^&\*;:{}=\-_~()]/g, "") 
+                    .replace(/['’‘`]/g, "")
+                    .replace(/[:.]/g, " ") // 把冒号和小数点都换成空格
+                    .replace(/[,\/#!$%\^&\*;:{}=\-_~()]/g, "") 
                     .replace(/\s\s+/g, ' ')
                     .trim(); 
         }
@@ -91,13 +93,13 @@
                 const cleanK = clean(k);
                 const kWords = cleanK.split(' ');
                 
-                // 1. 包含核心词组
+                // 1. 完全包含匹配
                 if (speech.includes(cleanK)) return true;
                 
-                // 2. 核心词比率匹配
+                // 2. 只要核心词(名词/数字)出现一半以上就算对
                 let matchCount = 0;
                 kWords.forEach(word => { if (speechWords.includes(word)) matchCount++; });
-                if (matchCount / kWords.length >= 0.6) return true;
+                if (matchCount / kWords.length >= 0.5) return true;
 
                 return false;
             });
@@ -128,32 +130,25 @@
         function startStep() {
             clearTimeout(countdownTimer); resetTimerUI();
             const micBtn = document.getElementById('mic-btn');
-            
             if (step >= scenario.length) { 
                 updateUI("Complete!", "Pro!", "🏆"); 
                 speak("Fantastic!"); 
                 micBtn.style.display='none'; 
                 document.getElementById('retry-btn').style.display='inline-block'; 
                 document.getElementById('back-btn').style.visibility='visible'; 
-                document.getElementById('skip-btn').style.visibility='hidden';
                 return; 
             }
-
-            // 核心修复：返回前面题时重新显示 TALK 按钮
             micBtn.style.display='flex';
             document.getElementById('retry-btn').style.display='none';
             document.getElementById('back-btn').style.visibility = step > 0 ? 'visible' : 'hidden';
             document.getElementById('skip-btn').style.visibility = 'visible';
-
             const cur = scenario[step];
             const qEng = cur.q.replace(/[\u4e00-\u9fa5]|（[^）]*）|\([^)]*\)/g, "").trim();
             updateUI(qEng, "Listening...", cur.emoji);
-            
             const cMatch = cur.q.match(/[\u4e00-\u9fa5]|（[^）]*）|\([^)]*\)/g);
             const vHint = document.getElementById('visual-hint');
             vHint.style.display = (cMatch || cur.visual) ? 'block' : 'none';
             document.getElementById('visual-text').innerText = (cMatch ? cMatch.join("") : "") || cur.visual || "";
-            
             document.getElementById('progress-inner').style.width = ((step/scenario.length)*100) + "%";
             speak(qEng, () => { 
                 document.getElementById('status').innerText = "TAP TO SPEAK"; 
@@ -191,7 +186,6 @@
             stopRecording(); 
             window.speechSynthesis.cancel(); 
             if (step > 0) { step--; startStep(); } 
-            else if (step === -1 || step >= scenario.length) { step = scenario.length - 1; startStep(); }
         }
         function goNext() { stopRecording(); window.speechSynthesis.cancel(); if (step < scenario.length) { step++; startStep(); } }
         function resetGame() { location.reload(); }
