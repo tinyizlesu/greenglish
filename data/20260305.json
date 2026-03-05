@@ -4,7 +4,7 @@
   { "q": "How long is your computer class? (40分钟)", "keys": ["40 minutes", "forty minutes"], "full": "40 minutes.", "emoji": "💻" },
   { "q": "How often do you play golf?", "keys": ["twice a week", "play golf twice"], "full": "I play golf twice a week.", "emoji": "⛳" },
   { "q": "How far is your school from your home?", "keys": ["two kilometers", "2 kilometers", "2 km"], "full": "It's two kilometers from my home.", "emoji": "🚗" },
-  { "q": "How tall are you?（1.5米）", "keys": ["1.5 meters", "one point five", "150 cm"], "full": "I'm 1.5 meters tall.", "emoji": "📏", "visual": "📏 1.35m (1 point 35)" },
+  { "q": "How tall are you?（1.5米）", "keys": ["1 point 5 meters", "one point five", "150 cm"], "full": "I'm 1 point 5 meters tall.", "emoji": "📏", "visual": "📏 1.35m (1 point 35)" },
   { "q": "How big is your toy?", "keys": ["not big", "not very big"], "full": "It's not very big.", "emoji": "🧸" },
   { "q": "How heavy is the fish? (10kg)", "keys": ["10kg", "10 kilograms", "ten kg"], "full": "10kg.", "emoji": "🐟" },
   { "q": "How do you go to school?", "keys": ["by car", "go by car"], "full": "I go to school by car.", "emoji": "🚗" },
