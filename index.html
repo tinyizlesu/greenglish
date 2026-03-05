@@ -62,15 +62,21 @@
         }
         loadData();
 
-        // 核心修复：这个函数确保 5:20 变成 5 20，1.5 变成 1 5
+        // 终极清洗函数：将数字也尝试转成文本
         function clean(t) { 
             if(!t) return "";
-            return t.toLowerCase()
+            let text = t.toLowerCase()
                     .replace(/['’‘`]/g, "")
-                    .replace(/[:.]/g, " ") // 把冒号和小数点都换成空格
-                    .replace(/[,\/#!$%\^&\*;:{}=\-_~()]/g, "") 
+                    .replace(/[:.]/g, " ") 
+                    .replace(/[,\/#!$%\^&\*;:{}=\-_~()]/g, "")
                     .replace(/\s\s+/g, ' ')
-                    .trim(); 
+                    .trim();
+            
+            // 数字转单词映射
+            const numMap = {"5":"five", "20":"twenty", "1":"one", "2":"two", "18":"eighteen", "10":"ten"};
+            let words = text.split(" ");
+            let translated = words.map(w => numMap[w] || w);
+            return translated.join(" ");
         }
 
         function speak(text, callback) {
@@ -85,21 +91,21 @@
         rec.onresult = (e) => {
             clearTimeout(countdownTimer);
             const rawSpeech = e.results[0][0].transcript;
-            const speech = clean(rawSpeech);
-            const speechWords = speech.split(' ');
+            const cleanedSpeech = clean(rawSpeech);
+            const speechWords = cleanedSpeech.split(' ');
             const current = scenario[step];
             
+            // 匹配逻辑：只要包含任何一个关键词，或者核心词命中超过 30% 就算对
             const isCorrect = current.keys.some(k => {
                 const cleanK = clean(k);
                 const kWords = cleanK.split(' ');
                 
-                // 1. 完全包含匹配
-                if (speech.includes(cleanK)) return true;
+                if (cleanedSpeech.includes(cleanK)) return true;
                 
-                // 2. 只要核心词(名词/数字)出现一半以上就算对
                 let matchCount = 0;
                 kWords.forEach(word => { if (speechWords.includes(word)) matchCount++; });
-                if (matchCount / kWords.length >= 0.5) return true;
+                // 降低门槛到 30%，防止数字识别不准
+                if (matchCount / kWords.length >= 0.3) return true;
 
                 return false;
             });
@@ -135,7 +141,6 @@
                 speak("Fantastic!"); 
                 micBtn.style.display='none'; 
                 document.getElementById('retry-btn').style.display='inline-block'; 
-                document.getElementById('back-btn').style.visibility='visible'; 
                 return; 
             }
             micBtn.style.display='flex';
@@ -182,11 +187,7 @@
         function stopRecording() { clearTimeout(countdownTimer); try { rec.stop(); } catch(e){} }
         function updateUI(n, s, e) { document.getElementById('npc-text').innerText = n; document.getElementById('npc-text').style.color = "#1b5e20"; document.getElementById('status').innerText = s; if(e) document.getElementById('big-emoji').innerText = e; }
         function resetTimerUI() { document.getElementById('timer-container').style.display = 'none'; document.getElementById('timer-bar').style.width = '100%'; }
-        function goBack() { 
-            stopRecording(); 
-            window.speechSynthesis.cancel(); 
-            if (step > 0) { step--; startStep(); } 
-        }
+        function goBack() { stopRecording(); window.speechSynthesis.cancel(); if (step > 0) { step--; startStep(); } }
         function goNext() { stopRecording(); window.speechSynthesis.cancel(); if (step < scenario.length) { step++; startStep(); } }
         function resetGame() { location.reload(); }
     </script>
