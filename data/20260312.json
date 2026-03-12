@@ -1,0 +1,13 @@
+[
+  { "q": "What did you have for dinner? (韭菜饺子)", "keys": ["chive and egg dumplings", "chive", "dumplings"], "full": "I had chive and egg dumplings for dinner.", "emoji": "🥟" },
+  { "q": "What is the month before September? (August)", "keys": ["august"], "full": "It's August.", "emoji": "📅" },
+  { "q": "What is the first day of a week?", "keys": ["monday"], "full": "It's Monday.", "emoji": "📅" },
+  { "q": "What is the last season of a year?", "keys": ["winter"], "full": "It's Winter.", "emoji": "❄️" },
+  { "q": "What did you do today? (跳绳)", "keys": ["jumped rope", "jump rope"], "full": "I jumped rope today.", "emoji": "➰" },
+  { "q": "What is the day after Friday?", "keys": ["saturday"], "full": "It's Saturday.", "emoji": "🏖️" },
+  { "q": "What day is the day after tomorrow? (4月2号)", "keys": ["april second", "april two"], "full": "It's April second.", "emoji": "🗓️" },
+  { "q": "When is Children's Day? (6月1号)", "keys": ["june first", "june one"], "full": "It's June first.", "emoji": "🎈" },
+  { "q": "What did you do today? (上画画课)", "keys": ["drawing class", "drawing"], "full": "I had a drawing class today.", "emoji": "🎨" },
+  { "q": "What color did you use? (棕色)", "keys": ["brown"], "full": "I used brown.", "emoji": "🟤" },
+  { "q": "What can you make? (三明治)", "keys": ["sandwiches", "sandwich"], "full": "I can make sandwiches.", "emoji": "🥪" }
+]
